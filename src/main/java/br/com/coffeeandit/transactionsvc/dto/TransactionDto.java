@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 import org.springframework.data.annotation.Id;
 import org.springframework.format.annotation.DateTimeFormat;
 
@@ -16,6 +17,7 @@ import java.util.UUID;
 @Getter
 @Setter
 @EqualsAndHashCode(of = "uuid")
+@ToString(of = { "uuid", "situacao" })
 public class TransactionDto {
 
     @Id
@@ -33,4 +35,24 @@ public class TransactionDto {
     @NotNull(message = "Informar o tipo da transação.")
     private TipoTransacao tipoTransacao;
     private SituacaoEnum situacao;
+
+    public void suspeitaFraude() {
+        situacao = SituacaoEnum.EM_SUSPEITA_FRAUDE;
+    }
+
+    public void analiseHumana() {
+        situacao = SituacaoEnum.EM_ANALISE_HUMANA;
+    }
+
+    public void analisada() {
+        situacao = SituacaoEnum.ANALISADA;
+    }
+
+    public boolean isAnalisada() {
+        return getSituacao().equals(SituacaoEnum.ANALISADA);
+    }
+
+    public void aprovar() {
+        situacao = SituacaoEnum.APROVADA;
+    }
 }
