@@ -1,5 +1,6 @@
 package br.com.coffeeandit.transactionsvc.domain;
 
+import br.com.coffeeandit.transactionsvc.dto.Conta;
 import br.com.coffeeandit.transactionsvc.dto.RequestTransactionDto;
 import br.com.coffeeandit.transactionsvc.dto.TransactionDto;
 import br.com.coffeeandit.transactionsvc.exception.DomainBusinessException;
@@ -9,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -51,5 +53,12 @@ public class TransactionBusiness {
 
     private Optional<TransactionDto> buscarTransacao(TransactionDto transactionDto) {
         return transactionRepository.findById(transactionDto.getUuid());
+    }
+
+    public List<TransactionDto> findByConta(final Long codigoAgencia, final Long codigoConta) {
+        var conta = new Conta();
+        conta.setCodigoConta(codigoConta);
+        conta.setCodigoAgencia(codigoAgencia);
+        return transactionRepository.findByConta(conta);
     }
 }
