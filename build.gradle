@@ -3,6 +3,8 @@ plugins {
     id 'io.spring.dependency-management' version '1.0.11.RELEASE'
     id 'java'
     id 'idea'
+    id 'jacoco'
+    id 'org.unbroken-dome.test-sets' version "4.0.0"
 }
 
 group = 'br.com.coffeeandit'
@@ -11,6 +13,16 @@ sourceCompatibility = '17'
 
 repositories {
     mavenCentral()
+}
+
+ext {
+    set('springCloudVersion', '2021.0.3')
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+    }
 }
 
 dependencies {
@@ -26,8 +38,60 @@ dependencies {
     annotationProcessor 'org.projectlombok:lombok'
     implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.9.8'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
+
+    //testes
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'io.projectreactor:reactor-test'
+    testImplementation 'org.springframework.cloud:spring-cloud-starter-contract-stub-runner'
+    testImplementation 'org.assertj:assertj-core'
 }
 
-tasks.named('test') {
+testSets {
+    e2eTest { dirName = 'test-e2e'}
+    integrationTest { dirName = 'test-integration'}
+}
+
+task allTests() {
+    dependsOn('test')
+    allTests.finalizedBy('integrationTestEe2e')
+}
+
+task integrationTestEe2e() {
+    dependsOn('integrationTest')
+    integrationTest.finalizedBy('e2eTest')
+}
+
+tasks.withType(Test) {
     useJUnitPlatform()
+    systemProperty "user.language", "en"
+    systemProperty "user.country", "US"
+}
+
+test {
+    finalizedBy jacocoTestReport
+}
+
+jacocoTestReport {
+    dependsOn(test, integrationTest, e2eTest)
+    getExecutionData()
+        .setFrom(fileTree(buildDir)
+                .include("/jacoco/test.exec")
+                .include("/jacoco/integrationTest.exec")
+                .include("/jacoco/e2eTest.exec"))
+
+    reports {
+        xml.enabled true
+        html.enabled true
+        html.outputLocation = layout.buildDirectory.dir('jacocoHtml')
+    }
+
+//    afterEvaluate {
+//        classDirectories.setFrom(files(classDirectories.files.collect {
+//            fileTree(it, [])
+//        }))
+//    }
+}
+
+check {
+    dependsOn jacocoTestCoverageVerification
 }
